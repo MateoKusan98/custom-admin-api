@@ -4,24 +4,49 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
+  Put,
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard, Public } from './auth.guard';
 import { AuthService } from './auth.service';
+import { signUpDto } from './dtos/signUpDto';
+import { signInDto } from './dtos/signInDto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @HttpCode(HttpStatus.OK)
+  @Public()
   @Post('login')
-  signIn(@Body() signInDto: Record<string, any>) {
-    return this.authService.signIn(signInDto.username, signInDto.password);
+  signIn(@Body() signInDto: signInDto) {
+    return this.authService.signIn(signInDto.email, signInDto.password);
   }
 
-  @UseGuards(AuthGuard)
+  @Public()
+  @Post('register')
+  signUp(@Body() signUpDto: signUpDto) {
+    return this.authService.signUp(
+      signUpDto.email,
+      signUpDto.password,
+      signUpDto.phone,
+      signUpDto.username,
+    );
+  }
+
+  @Put('verify-email/:id')
+  verifyEmail(@Param('id') id: string, @Body() body: { code: string }) {
+    return this.authService.verify(id, body.code);
+  }
+
+  @Public()
+  @Post('check')
+  check(@Body() email: string) {
+    return this.authService.check(email);
+  }
+
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
